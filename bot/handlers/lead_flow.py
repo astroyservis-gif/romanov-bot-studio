@@ -5,6 +5,7 @@ from aiogram.fsm.context import FSMContext
 from aiogram.types import CallbackQuery, Message
 
 from bot.config import ADMIN_TG_ID, DB_PATH
+from bot.constants.services import SERVICES
 from bot.db.repository import save_files, save_lead
 from bot.keyboards.form import back_cancel_kb
 from bot.keyboards.inline import (
@@ -22,14 +23,6 @@ from bot.utils.validators import is_non_empty_text, validate_contact
 router = Router()
 
 MAX_FILES = 10
-
-SERVICES: list[str] = [
-    "🧠 Нейрофотосессия",
-    "🧹 Реставрация фото/видео",
-    "🎬 Видеопоздравление",
-    "📣 Контент для соцсетей/рекла",
-    "🖼 Ролики и истории из фотографий",
-]
 
 _DEADLINE_LABELS: dict[str, str] = {
     "urgent": "Срочно",
@@ -146,6 +139,33 @@ async def start_lead_flow(message: Message, state: FSMContext) -> None:
     await message.answer("Выберите услугу:", reply_markup=services_kb(SERVICES))
 
 
+# старт заявки из раздела "Примеры работ" с уже выбранной услугой
+@router.callback_query(F.data.startswith("lead:svc:"))
+async def start_lead_flow_with_service(call: CallbackQuery, state: FSMContext) -> None:
+    raw = (call.data or "").split(":", 2)[2]
+    try:
+        idx = int(raw)
+    except ValueError:
+        await call.answer("Некорректный выбор")
+        return
+
+    if not (1 <= idx <= len(SERVICES)):
+        await call.answer("Некорректный выбор")
+        return
+
+    await state.clear()
+    await state.update_data(service=SERVICES[idx - 1], rest_type=None, files=[])
+
+    service = SERVICES[idx - 1]
+    await call.answer()
+
+    if _is_restoration_service(service):
+        await _ask_rest_type(call.message, state)
+        return
+
+    await _ask_task(call.message, state)
+
+
 @router.message(F.text == "❌ Отменить")
 async def cancel_from_reply(message: Message, state: FSMContext) -> None:
     current = await state.get_state()
@@ -174,9 +194,7 @@ async def choose_service(call: CallbackQuery, state: FSMContext) -> None:
         return
 
     service = SERVICES[idx - 1]
-    await state.update_data(service=service)
-
-    await state.update_data(rest_type=None, files=[])
+    await state.update_data(service=service, rest_type=None, files=[])
 
     await call.answer()
 
@@ -305,10 +323,7 @@ async def files_done(call: CallbackQuery, state: FSMContext) -> None:
     files: list[dict[str, str]] = data.get("files") or []
 
     if not files:
-        # ⚠️ Главное исправление: предупреждаем, но ПЕРЕХОДИМ ДАЛЬШЕ
-        await call.message.answer(
-            "⚠️ Файлы не прикреплены. Продолжаем без файлов."
-        )
+        await call.message.answer("⚠️ Файлы не прикреплены. Продолжаем без файлов.")
         await call.answer()
         await _ask_deadline(call.message, state)
         return
