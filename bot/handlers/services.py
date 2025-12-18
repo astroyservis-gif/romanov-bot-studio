@@ -6,7 +6,7 @@ from aiogram.types import CallbackQuery, InputMediaPhoto, Message
 
 from bot.constants.portfolio import PORTFOLIO_MEDIA, is_configured
 from bot.constants.services import SERVICES
-from bot.keyboards.inline import restoration_type_kb, services_kb
+from bot.keyboards.inline import restoration_type_kb
 from bot.keyboards.main import main_menu_kb
 from bot.keyboards.services import service_card_kb, services_list_kb
 from bot.keyboards.portfolio import portfolio_after_album_kb
