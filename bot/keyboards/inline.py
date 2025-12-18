@@ -14,19 +14,12 @@ def services_kb(services: list[str]) -> InlineKeyboardMarkup:
 def deadline_kb() -> InlineKeyboardMarkup:
     return InlineKeyboardMarkup(
         inline_keyboard=[
+            [InlineKeyboardButton(text="🔥 Срочно", callback_data="dl:urgent")],
+            [InlineKeyboardButton(text="📅 В течение недели", callback_data="dl:week")],
+            [InlineKeyboardButton(text="⏳ Не срочно", callback_data="dl:not_urgent")],
+            [InlineKeyboardButton(text="✍️ Свой вариант", callback_data="dl:custom")],
             [
-                InlineKeyboardButton(text="Срочно (1–2 дня)", callback_data="deadline:urgent"),
-            ],
-            [
-                InlineKeyboardButton(text="В течение недели", callback_data="deadline:week"),
-            ],
-            [
-                InlineKeyboardButton(text="Не срочно", callback_data="deadline:not_urgent"),
-            ],
-            [
-                InlineKeyboardButton(text="Свой вариант", callback_data="deadline:custom"),
-            ],
-            [
+                InlineKeyboardButton(text="⬅️ Назад", callback_data="lead:back"),
                 InlineKeyboardButton(text="Отменить", callback_data="lead:cancel"),
             ],
         ]
@@ -41,6 +34,7 @@ def confirm_kb() -> InlineKeyboardMarkup:
                 InlineKeyboardButton(text="✏️ Изменить", callback_data="lead:edit"),
             ],
             [
+                InlineKeyboardButton(text="⬅️ Назад", callback_data="lead:back"),
                 InlineKeyboardButton(text="❌ Отменить", callback_data="lead:cancel"),
             ],
         ]

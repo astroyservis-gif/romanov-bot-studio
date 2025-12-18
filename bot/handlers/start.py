@@ -13,7 +13,7 @@ router = Router()
 async def cmd_start(message: Message) -> None:
     text = (
         "Привет! Это <b>Romanov Bot Studio</b>.\n"
-        "Выберите пункт меню ниже 👇"
+        "Выберите действие ниже 👇"
     )
     await message.answer(text, reply_markup=main_menu_kb())
 
@@ -22,39 +22,43 @@ async def cmd_start(message: Message) -> None:
 async def cmd_help(message: Message) -> None:
     text = (
         "<b>Помощь</b>\n"
-        "Нажмите «Оставить заявку», чтобы оформить запрос.\n"
+        "Нажмите «✅ Оставить заявку», чтобы оформить запрос.\n"
         "Остальные пункты меню — справочные."
     )
     await message.answer(text, reply_markup=main_menu_kb())
 
 
-@router.message(F.text == "Услуги")
+@router.message(F.text == "🧩 Услуги")
 async def menu_services(message: Message) -> None:
     await message.answer(
         "Раздел «Услуги» — в разработке.\n"
-        "Скоро тут появятся подробности и сценарии."
+        "Скоро тут появятся подробности и сценарии.",
+        reply_markup=main_menu_kb(),
     )
 
 
-@router.message(F.text == "Примеры работ")
+@router.message(F.text == "🖼 Примеры работ")
 async def menu_portfolio(message: Message) -> None:
     await message.answer(
         "Раздел «Примеры работ» — в разработке.\n"
-        "Скоро добавим кейсы."
+        "Скоро добавим кейсы.",
+        reply_markup=main_menu_kb(),
     )
 
 
-@router.message(F.text == "Как мы работаем")
+@router.message(F.text == "🧾 Как мы работаем")
 async def menu_how_we_work(message: Message) -> None:
     await message.answer(
         "Раздел «Как мы работаем» — в разработке.\n"
-        "Скоро добавим этапы и сроки."
+        "Скоро добавим этапы и сроки.",
+        reply_markup=main_menu_kb(),
     )
 
 
-@router.message(F.text == "Контакты")
+@router.message(F.text == "☎️ Контакты")
 async def menu_contacts(message: Message) -> None:
     await message.answer(
         "Контакты — в разработке.\n"
-        "Скоро добавим удобные способы связи."
+        "Скоро добавим удобные способы связи.",
+        reply_markup=main_menu_kb(),
     )
