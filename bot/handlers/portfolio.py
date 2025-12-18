@@ -50,7 +50,6 @@ async def portfolio_choose_service(call: CallbackQuery) -> None:
     service_title = SERVICES[idx - 1]
     file_ids = PORTFOLIO_MEDIA[idx - 1]
 
-    # Если file_id ещё не настроены — не падаем, а говорим как исправить
     if not is_configured(file_ids):
         await call.message.answer(
             f"Примеры для услуги «{service_title}» пока не настроены.\n"
