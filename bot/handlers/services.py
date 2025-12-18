@@ -6,10 +6,13 @@ from aiogram.types import CallbackQuery, InputMediaPhoto, Message
 
 from bot.constants.portfolio import PORTFOLIO_MEDIA, is_configured
 from bot.constants.services import SERVICES
+from bot.keyboards.inline import restoration_type_kb, services_kb
 from bot.keyboards.main import main_menu_kb
 from bot.keyboards.services import service_card_kb, services_list_kb
 from bot.keyboards.portfolio import portfolio_after_album_kb
+from bot.keyboards.neuro import neuro_step1_kb
 from bot.states.lead_form import LeadForm
+from bot.texts.neuro import NEURO_EXAMPLE_PHOTO_FILE_IDS, NEURO_STEP1_TEXT
 from bot.texts.services import SERVICE_CARDS_BY_TITLE
 
 router = Router()
@@ -23,6 +26,10 @@ def _get_service_title(idx: int) -> str | None:
 
 def _is_restoration_service(title: str) -> bool:
     return "реставрац" in title.lower()
+
+
+def _is_neuro_service(title: str) -> bool:
+    return "нейрофотосесс" in title.lower()
 
 
 @router.message(F.text == "🧩 Услуги")
@@ -75,30 +82,33 @@ async def services_apply(call: CallbackQuery, state: FSMContext) -> None:
         await call.answer("Некорректный выбор")
         return
 
-    # Старт заявки "как будто выбрали услугу в заявке"
     await state.clear()
     await state.update_data(service=title, rest_type=None, files=[])
 
     await call.answer()
 
-    # ВАЖНО: не ломаем текущий FSM — используем те же состояния/шаги.
+    # Стартуем тот же флоу, что и в заявке
+    if _is_neuro_service(title):
+        await state.set_state(LeadForm.neuro_step1)
+        await call.message.answer(NEURO_STEP1_TEXT, reply_markup=neuro_step1_kb())
+
+        # альбом примеров (если настроен)
+        if NEURO_EXAMPLE_PHOTO_FILE_IDS:
+            media = [InputMediaPhoto(media=fid) for fid in NEURO_EXAMPLE_PHOTO_FILE_IDS[:5]]
+            await call.message.answer_media_group(media=media)
+        else:
+            await call.message.answer("⚠️ Примеры фото пока не настроены (нет file_id).")
+
+        return
+
     if _is_restoration_service(title):
         await state.set_state(LeadForm.rest_type)
-        await call.message.answer(
-            "Что реставрируем?",
-            reply_markup=None,  # inline-кнопки придут из lead_flow роутера при нажатии (rest:photo/rest:video)
-        )
-        # Чтобы кнопки были сразу — дублируем отправку клавиатуры через callback data нельзя.
-        # Проще: просим выбрать тип через существующие inline-кнопки из lead_flow.
-        # Пользователь нажмёт "✅ Оставить заявку" и далее продолжит в потоке заявки из меню.
-        # (На практике — чтобы кнопки появились, пользователь должен стартовать именно через меню заявки.
-        # Поэтому ниже запускаем выбор услуги через существующий путь lead:svc)
-        await call.message.answer("Нажмите ещё раз «✅ Оставить заявку» в меню, чтобы продолжить.")
+        await call.message.answer("Что реставрируем?", reply_markup=restoration_type_kb())
         return
 
     await state.set_state(LeadForm.task)
     await call.message.answer("Опишите задачу одним сообщением (что нужно сделать):")
-    # Дальше обработает lead_flow
+    # дальше обработает lead_flow
 
 
 @router.callback_query(F.data.startswith("services:portfolio:"))
